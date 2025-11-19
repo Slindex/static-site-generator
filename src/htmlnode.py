@@ -36,3 +36,29 @@ class HTMLNode():
         ]
 
         return "\n".join(lines)
+    
+
+class LeafNode(HTMLNode):
+    def __init__(self, tag:str, value:str, props:dict|None = None):
+        if value is None:
+            raise ValueError("LeafNode must contain a value")
+
+        super().__init__(tag=tag, value=value, children=None, props=props)
+    
+    def to_html(self):
+        if self.tag is None:
+            return self.value
+
+        tag = self.tag
+        value = self.value
+        props = self.props_to_html()
+
+        return f"<{tag}{props}>{value}</{tag}>"
+
+
+class ParentNode(HTMLNode):
+    def __init__(self, tag:str, children:list, props:dict|None = None):
+        if tag is None or children is None:
+            raise ValueError("ParentNode must have a tag and a children")
+        
+        super().__init__(tag=tag, children=children, props=props)
