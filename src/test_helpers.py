@@ -1,7 +1,12 @@
 import unittest
 from htmlnode import LeafNode
 from textnode import TextNode, TextType
-from helpers import text_node_to_html_node, split_nodes_delimiter
+from helpers import (
+    text_node_to_html_node,
+    split_nodes_delimiter,
+    extract_markdown_images,
+    extract_markdown_links
+)
 
 
 class TestTextNodeToHTML(unittest.TestCase):
@@ -55,5 +60,60 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         
         with self.assertRaises(Exception):
             split_nodes_delimiter(nodes, "`", TextType.CODE)
-            
+
+class TestExtractMarkdownImages(unittest.TestCase):
+    def test_standard_case(self):
+        matches = extract_markdown_images(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)"
+        )
+        self.assertListEqual([("image", "https://i.imgur.com/zjjcJKZ.png")], matches)
+    
+    def test_link(self):
+        matches = extract_markdown_images(
+            "This is text with an [image](https://i.imgur.com/zjjcJKZ.png)"
+        )
+        self.assertListEqual([], matches)
+
+    def test_multiple_groups(self):
+        text = (
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) "
+            "and a second ![image](https://google.com) "
+            "and a third ![image](https://facebook.com)"
+        )
+        matches = extract_markdown_images(text)
+        expected = [
+            ("image", "https://i.imgur.com/zjjcJKZ.png"),
+            ("image", "https://google.com"),
+            ("image", "https://facebook.com"),
+        ]
+        self.assertListEqual(expected, matches)
+
+class TestExtractMarkdownLinks(unittest.TestCase):
+    def test_standard_case(self):
+        matches = extract_markdown_links(
+            "This is text with an [link](https://i.imgur.com/zjjcJKZ.com)"
+        )
+        self.assertListEqual([("link", "https://i.imgur.com/zjjcJKZ.com")], matches)
+    
+    def test_image_and_link(self):
+        text = (
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) "
+            "and a [link](https://google.com)"
+        )
+        matches = extract_markdown_links(text)
+        self.assertListEqual([("link", "https://google.com")], matches)
+    
+    def test_multiple_groups(self):
+        text = (
+            "This is text with an [link](https://i.imgur.com/zjjcJKZ.png) "
+            "and a second [link](https://google.com) "
+            "and a third [link](https://facebook.com)"
+        )
+        matches = extract_markdown_links(text)
+        expected = [
+            ("link", "https://i.imgur.com/zjjcJKZ.png"),
+            ("link", "https://google.com"),
+            ("link", "https://facebook.com"),
+        ]
+        self.assertListEqual(expected, matches)
         
