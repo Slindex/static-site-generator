@@ -37,9 +37,20 @@ class HTMLNode():
 
         return "\n".join(lines)
     
+    def __eq__(self, other):
+        if not isinstance(other, HTMLNode):
+            return NotImplemented
+        
+        return (
+            self.tag == other.tag and
+            self.value == other.value and
+            self.children == other.children and
+            self.props == other.props
+        )
+    
 
 class LeafNode(HTMLNode):
-    def __init__(self, tag:str, value:str, props:dict|None = None):
+    def __init__(self, tag:str|None, value:str, props:dict|None = None):
         if value is None:
             raise ValueError("LeafNode must contain a value")
 
@@ -62,3 +73,18 @@ class ParentNode(HTMLNode):
             raise ValueError("ParentNode must have a tag and a children")
         
         super().__init__(tag=tag, children=children, props=props)
+    
+    def to_html(self):
+        if self.tag is None:
+            raise ValueError("ParentNode must have a tag")
+        if not self.children:
+            raise ValueError("ParentNode must have at least one children")
+        
+        html = f"<{self.tag}>"
+
+        for child in self.children:
+            html += child.to_html()
+        
+        html += f"</{self.tag}>"
+
+        return html
