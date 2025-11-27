@@ -8,6 +8,8 @@ from helpers import (
     extract_markdown_links,
     split_nodes_link,
     split_nodes_image,
+    text_to_textnodes,
+    markdown_to_blocks
 )
 
 
@@ -161,4 +163,102 @@ class TestSplitNodes(unittest.TestCase):
             ],
             new_nodes
         )
-        
+
+class TestTextToTextNodes(unittest.TestCase):
+    def test_all_splitting(self):
+        text = (
+            "This is **text** with an _italic_ word and a `code block` "
+            "and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        )
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode("This is ", TextType.PLAIN),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.PLAIN),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.PLAIN),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.PLAIN),
+                TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+                TextNode(" and a ", TextType.PLAIN),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ]
+        )
+    
+    def test_one_element(self):
+        text = "**text**"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode("text", TextType.BOLD)
+            ]
+        )
+    
+    def test_one_image(self):
+        text = "![Testing](https://google.com)"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode("Testing", TextType.IMAGE, "https://google.com")
+            ]
+        )        
+
+class TestMarkdownToBlocks(unittest.TestCase):
+    def test_markdown_to_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+    
+    def test_one_block(self):
+        md = "I'm one block"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "I'm one block"
+            ],
+        )
+
+    def test_empty_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+
+
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )

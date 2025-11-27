@@ -37,6 +37,16 @@ def split_nodes_delimiter(old_nodes:list[TextNode], delimiter:str, text_type:Tex
         if node.text_type is not TextType.PLAIN:
             new_nodes.append(node)
             continue
+
+        if node.text[0] == node.text[-1] == delimiter[0]:
+            text = ""
+
+            for char in node.text:
+                if char != delimiter[0]:
+                    text += char
+
+            new_nodes.append(TextNode(text, text_type))
+            continue
         
         text = node.text
         plain = ""
@@ -167,3 +177,17 @@ def text_to_textnodes(text:str) -> list[TextNode]:
     new_nodes = split_nodes_image(new_nodes)
 
     return new_nodes
+
+def markdown_to_blocks(markdown:str) -> list[str]:
+    if "\n\n" not in markdown:
+        return [markdown.strip()]
+    
+    blocks = markdown.split("\n\n")
+
+    while "" in blocks:
+        blocks.remove("")
+
+    for i in range(len(blocks)):
+        blocks[i] = blocks[i].strip()
+    
+    return blocks
