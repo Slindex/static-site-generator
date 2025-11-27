@@ -1,7 +1,7 @@
 import unittest
-from htmlnode import LeafNode
-from textnode import TextNode, TextType
-from helpers import (
+from src.htmlnode import LeafNode
+from src.textnode import TextNode, TextType
+from src.helpers import (
     text_node_to_html_node,
     split_nodes_delimiter,
     extract_markdown_images,
