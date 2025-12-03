@@ -1,6 +1,7 @@
 import unittest
 from src.htmlnode import LeafNode
-from src.textnode import TextNode, TextType
+from src.textnode import TextNode
+from src.enums import TextType, BlockType
 from src.helpers import (
     text_node_to_html_node,
     split_nodes_delimiter,
@@ -9,7 +10,8 @@ from src.helpers import (
     split_nodes_link,
     split_nodes_image,
     text_to_textnodes,
-    markdown_to_blocks
+    markdown_to_blocks,
+    block_to_blocktype
 )
 
 
@@ -219,7 +221,7 @@ This is the same paragraph on a new line
 - with items
 """
         blocks = markdown_to_blocks(md)
-        self.assertEqual(
+        self.assertListEqual(
             blocks,
             [
                 "This is **bolded** paragraph",
@@ -231,7 +233,7 @@ This is the same paragraph on a new line
     def test_one_block(self):
         md = "I'm one block"
         blocks = markdown_to_blocks(md)
-        self.assertEqual(
+        self.assertListEqual(
             blocks,
             [
                 "I'm one block"
@@ -254,7 +256,7 @@ This is the same paragraph on a new line
 - with items
 """
         blocks = markdown_to_blocks(md)
-        self.assertEqual(
+        self.assertListEqual(
             blocks,
             [
                 "This is **bolded** paragraph",
@@ -262,3 +264,34 @@ This is the same paragraph on a new line
                 "- This is a list\n- with items",
             ],
         )
+
+class BlockToBlockType(unittest.TestCase):
+    def test_heading(self):
+        block = "# Soy un encabezado!"
+        block_type = block_to_blocktype(block)
+        self.assertEqual(block_type, BlockType.HEADING)
+    
+    def test_code(self):
+        block = "```\nSoy un codigo\n```"
+        block_type = block_to_blocktype(block)
+        self.assertEqual(block_type, BlockType.CODE)
+    
+    def test_quote(self):
+        block = ">Soy una cita\n>Soy otra cita\n>Soy una ultima cita"
+        block_type = block_to_blocktype(block)
+        self.assertEqual(block_type, BlockType.QUOTE)
+    
+    def test_unordered_list(self):
+        block = "- Primero\n- Segundo\n- Tercero"
+        block_type = block_to_blocktype(block)
+        self.assertEqual(block_type, BlockType.UNORDERED_LIST)
+
+    def test_ordered_list(self):
+        block = "1. Primero\n2. Segundo\n3. Tercero"
+        block_type = block_to_blocktype(block)
+        self.assertEqual(block_type, BlockType.ORDERED_LIST)
+
+    def test_paragraph(self):
+        block = "Primero\nSegundo\nTercero"
+        block_type = block_to_blocktype(block)
+        self.assertEqual(block_type, BlockType.PARAGRAPH)

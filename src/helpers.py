@@ -1,6 +1,7 @@
 import re
-from .textnode import TextNode, TextType
+from .textnode import TextNode
 from .htmlnode import LeafNode
+from .enums import TextType, BlockType
 
 
 def text_node_to_html_node(text_node: TextNode) -> LeafNode:
@@ -191,3 +192,36 @@ def markdown_to_blocks(markdown:str) -> list[str]:
         blocks[i] = blocks[i].strip()
     
     return blocks
+
+def block_to_blocktype(block:str):
+    headings = ("# ", "## ", "### ", "#### ", "##### ", "###### ")
+    lines = block.split("\n")
+
+    if block.startswith(headings):
+        return BlockType.HEADING
+    
+    if block.startswith("```") and block.endswith("```"):
+        return BlockType.CODE
+    
+    if block.startswith(">"):
+        for line in lines:
+            if not line.startswith(">"):
+                raise Exception("All block lines must start with '>'")
+        
+        return BlockType.QUOTE
+    
+    if block.startswith("- "):
+        for line in lines:
+            if not line.startswith("- "):
+                raise Exception("All block lines must start with '- '")
+        
+        return BlockType.UNORDERED_LIST
+    
+    if block.startswith("1. "):
+        for i in range(2, len(lines)+1):
+            if not lines[i-1].startswith(f"{i}. "):
+                raise Exception("All block lines must start with proper sequence: (1. ,2. ,3. , etc...)")
+        
+        return BlockType.ORDERED_LIST
+    
+    return BlockType.PARAGRAPH
