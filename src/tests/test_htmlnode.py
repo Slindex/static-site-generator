@@ -9,7 +9,7 @@ class TestHTMLNode(unittest.TestCase):
     
     def test_no_children(self):
         node = HTMLNode("<p>", "Hola! Soy texto")
-        self.assertEqual(node.children, None)
+        self.assertEqual(node.children, [])
     
     def test_props_to_html(self):
         props = {

@@ -3,7 +3,7 @@ class HTMLNode():
             self, 
             tag: str | None = None, 
             value: str | None = None, 
-            children: list | None = None, 
+            children: list = [], 
             props: dict | None = None
     ):
         self.tag = tag
@@ -54,7 +54,7 @@ class LeafNode(HTMLNode):
         if value is None:
             raise ValueError("LeafNode must contain a value")
 
-        super().__init__(tag=tag, value=value, children=None, props=props)
+        super().__init__(tag=tag, value=value, props=props)
     
     def to_html(self):
         if self.tag is None:
@@ -65,12 +65,15 @@ class LeafNode(HTMLNode):
         props = self.props_to_html()
 
         return f"<{tag}{props}>{value}</{tag}>"
+    
+    def add_child(self, child:HTMLNode):
+        raise TypeError("Leafnode cannot have children")
 
 
 class ParentNode(HTMLNode):
     def __init__(self, tag:str, children:list, props:dict|None = None):
-        if tag is None or children is None:
-            raise ValueError("ParentNode must have a tag and a children")
+        if tag is None:
+            raise ValueError("ParentNode must have a tag")
         
         super().__init__(tag=tag, children=children, props=props)
     
@@ -88,3 +91,6 @@ class ParentNode(HTMLNode):
         html += f"</{self.tag}>"
 
         return html
+    
+    def add_child(self, child:HTMLNode):
+        self.children.append(child)

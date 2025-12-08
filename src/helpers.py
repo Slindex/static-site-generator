@@ -1,6 +1,6 @@
 import re
 from .textnode import TextNode
-from .htmlnode import LeafNode
+from .htmlnode import LeafNode, ParentNode
 from .enums import TextType, BlockType
 
 
@@ -225,3 +225,51 @@ def block_to_blocktype(block:str):
         return BlockType.ORDERED_LIST
     
     return BlockType.PARAGRAPH
+
+def markdown_to_html_node(markdown:str):
+    blocks = markdown_to_blocks(markdown)
+    root_node = ParentNode("div", [])
+
+    for block in blocks:
+        block_type = block_to_blocktype(block)
+        text_nodes = text_to_textnodes(block)
+        md_children = []
+
+        for text_node in text_nodes:
+            html_child = text_node_to_html_node(text_node)
+            md_children.append(html_child)
+    
+        if block_type == BlockType.PARAGRAPH:
+            for node in md_children:
+                node.value = node.value.replace("\n", " ")
+
+            block_node = ParentNode("p", md_children)
+
+        elif block_type == BlockType.HEADING:
+            syntax = block.split(" ")[0]
+            h_type = len(syntax)
+
+            for node in md_children:
+                node.value = node.value[h_type+1:]
+
+            block_node = ParentNode(f"h{h_type}", md_children)
+        
+        elif block_type == BlockType.QUOTE:
+            for node in md_children:
+                lines = node.value.split("\n")
+                text = ""
+
+                for line in lines:
+                    line = line.replace("> ", "") + " "
+                    text += line
+
+                node.value = text.strip()
+
+            block_node = ParentNode("blockquote", md_children)
+
+        else:
+            continue
+        
+        root_node.add_child(block_node)
+
+    return root_node
