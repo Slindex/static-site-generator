@@ -242,7 +242,6 @@ def markdown_to_html_node(markdown:str):
         if block_type == BlockType.PARAGRAPH:
             for node in md_children:
                 node.value = node.value.replace("\n", " ")
-
             block_node = ParentNode("p", md_children)
 
         elif block_type == BlockType.HEADING:
@@ -251,7 +250,6 @@ def markdown_to_html_node(markdown:str):
 
             for node in md_children:
                 node.value = node.value[h_type+1:]
-
             block_node = ParentNode(f"h{h_type}", md_children)
         
         elif block_type == BlockType.QUOTE:
@@ -264,8 +262,32 @@ def markdown_to_html_node(markdown:str):
                     text += line
 
                 node.value = text.strip()
-
             block_node = ParentNode("blockquote", md_children)
+        
+        elif block_type == BlockType.UNORDERED_LIST:
+            for node in md_children:
+                lines = node.value.split("\n")
+                text = ""
+
+                for line in lines:
+                    line = line.replace("- ", "<li>") + "</li>"
+                    text += line
+
+                node.value = text.strip()
+            block_node = ParentNode("ul", md_children)
+
+        elif block_type == BlockType.ORDERED_LIST:
+            for node in md_children:
+                lines = node.value.split("\n")
+                text = ""
+
+                for i in range(1,len(lines)+1):
+                    line = lines[i-1]
+                    line = line.replace(f"{i}. ", "<li>") + "</li>"
+                    text += line
+
+                node.value = text.strip()
+            block_node = ParentNode("ol", md_children)
 
         else:
             continue
